@@ -131,34 +131,32 @@ function StopList({ stopListArr, allStops, selectedBound }) {
           const isExpanded = expandedStop === stop; // 是否展開當前站點
           const eta = etaData[stop] || []; // 當前站點的ETA資料
 
-          // 判斷是否為頭站或尾站
-          const isHeadOrTailStation = seq === 1 || seq === stopListArr.length;
-
           // 計算最近3班車的ETA和剩餘分鐘
           const nextETAs =
             eta.length > 0
-              ? eta
-                  .filter((e) => {
-                    if (!e.eta) return false;
-                    const etaTime = new Date(e.eta);
-                    return etaTime >= currentTime; // 過濾已過期的班次
-                  })
-                  .slice(0, 3)
-                  .map((e) => {
-                    const etaTime = new Date(e.eta);
-                    const minutes = Math.round(
-                      (etaTime - currentTime) / 1000 / 60
-                    ); // 使用 currentTime 計算
-                    const timeStr = etaTime.toLocaleTimeString("zh-HK", {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    });
-                    return {
-                      time: timeStr,
-                      minutes: minutes > 0 ? `${minutes}分鐘` : "即將到達",
-                    };
-                  })
-              : [{ time: "無車", minutes: "-" }]; // 當 eta 為空時顯示「無車」
+              ? eta.slice(0, 3).map((e) => {
+                  if (!e.eta) {
+                    return { time: "無車", minutes: "-" };
+                  }
+                  const etaTime = new Date(e.eta);
+                  const minutes = Math.round(
+                    (etaTime - currentTime) / 1000 / 60
+                  );
+                  const timeStr = etaTime.toLocaleTimeString("zh-HK", {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    hour12: false, // 使用 24 小時制
+                  });
+                  return {
+                    time: timeStr,
+                    minutes: minutes > 0 ? `${minutes}分鐘` : "即將到達",
+                  };
+                })
+              : [{ time: "無車", minutes: "-" }];
+
+          // 檢查是否有有效班次（僅檢查 minutes 是否為 "-"）
+          const hasValidETA =
+            nextETAs.length > 0 && nextETAs[0].minutes !== "-";
 
           return (
             <div
@@ -170,7 +168,6 @@ function StopList({ stopListArr, allStops, selectedBound }) {
               <div className="flex justify-between items-center">
                 <span>
                   {seq} - {stopArrWithName[0]?.name_tc || "未知站點"}
-                  {isHeadOrTailStation && " (頭尾站)"}
                 </span>
                 <span className="text-rose-600 text-sm">
                   {isExpanded ? "" : ""}
@@ -185,15 +182,16 @@ function StopList({ stopListArr, allStops, selectedBound }) {
                     <div>{etaError}</div>
                   ) : (
                     <div>
-                      {nextETAs.map((eta, index) => (
-                        <div key={index}>
-                          {eta.time === "無車"
-                            ? "無車"
-                            : `第${index + 1}班: ${eta.time} ${
-                                eta.minutes !== "-" && `(${eta.minutes})`
-                              }`}
-                        </div>
-                      ))}
+                      {hasValidETA ? (
+                        nextETAs.map((eta, index) => (
+                          <div key={index}>
+                            {eta.time}{" "}
+                            {eta.minutes !== "-" && `(${eta.minutes})`}
+                          </div>
+                        ))
+                      ) : (
+                        <div>無車</div>
+                      )}
                     </div>
                   )}
                 </div>
