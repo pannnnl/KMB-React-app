@@ -1,3 +1,14 @@
+/* 現有樣式 */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* 禁止水平滾動和水平滑動 */
+html,
+body {
+  overflow-x: hidden;
+  touch-action: pan-y;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}

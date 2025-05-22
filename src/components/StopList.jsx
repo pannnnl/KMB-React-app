@@ -134,7 +134,7 @@ function StopList({ stopListArr, allStops, selectedBound }) {
           // 判斷是否為頭站或尾站
           const isHeadOrTailStation = seq === 1 || seq === stopListArr.length;
 
-          // 計算最近3班車的ETA和剩餘分鐘，顯示方向
+          // 計算最近3班車的ETA和剩餘分鐘
           const nextETAs =
             eta.length > 0
               ? eta
@@ -156,19 +156,13 @@ function StopList({ stopListArr, allStops, selectedBound }) {
                     return {
                       time: timeStr,
                       minutes: minutes > 0 ? `${minutes}分鐘` : "即將到達",
-                      dir:
-                        e.dir === "O"
-                          ? "去線"
-                          : e.dir === "I"
-                          ? "來線"
-                          : "未知",
                     };
                   })
-              : [{ time: "無即將到站", minutes: "-", dir: "-" }];
+              : [{ time: "無即將到站", minutes: "-" }];
 
           return (
             <div
-              className="py-2 px-4 cursor-pointer flex flex-col border border-rose-500 w-[300px] rounded-md mb-4 hover:bg-rose-100"
+              className="py-2 px-4 cursor-pointer flex flex-col border border-rose-500 w-full sm:w-[300px] rounded-md mb-4 hover:bg-rose-100"
               key={stop}
               onClick={() => handleStopClick(stop, stopObj)}
             >
@@ -182,7 +176,7 @@ function StopList({ stopListArr, allStops, selectedBound }) {
                   {isExpanded ? "" : ""}
                 </span>
               </div>
-              {/* 展開時顯示ETA，顯示方向 */}
+              {/* 展開時顯示ETA */}
               {isExpanded && (
                 <div className="mt-2 text-sm text-rose-600">
                   {isLoading ? (
@@ -191,15 +185,10 @@ function StopList({ stopListArr, allStops, selectedBound }) {
                     <div>{etaError}</div>
                   ) : (
                     <div>
-                      {/*先隱藏來去方向 因為用戶不需要知道*/}
-                      {/* <p className="mb-1">
-                        選擇方向: {selectedBound === "O" ? "去線" : "來線"}
-                      </p> */}
                       {nextETAs.map((eta, index) => (
                         <div key={index}>
                           第{index + 1}班: {eta.time}{" "}
                           {eta.minutes !== "-" && `(${eta.minutes})`}
-                          {/* ({eta.dir})  先隱藏來去方向 因為用戶不需要知道*/}
                         </div>
                       ))}
                     </div>
