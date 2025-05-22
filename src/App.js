@@ -3,6 +3,7 @@ import Logo from "./components/Logo";
 import SearchForm from "./components/SearchForm";
 import BoundContainer from "./components/BoundContainer";
 import StopList from "./components/StopList";
+import { SpeedInsights } from "@vercel/speed-insights/react";
 
 // 定義KMB API的基本URL
 const baseURL = "https://data.etabus.gov.hk/v1/transport/kmb";
@@ -176,6 +177,7 @@ function App() {
       )}
       {/* 顯示站點列表 */}
       <StopList stopListArr={stopList} allStops={allStops} />
+      <SpeedInsights />
     </>
   );
 }
