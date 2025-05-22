@@ -7,4 +7,9 @@
 html,
 body {
   overflow-x: hidden;
+  touch-action: pan-y;
+  width: 100%;
+  min-height: 100vh; /* 確保高度至少為整個畫面 */
+  margin: 0;
+  padding: 0;
 }

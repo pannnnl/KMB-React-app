@@ -101,7 +101,7 @@ function SearchForm({ showError, checkRouteExists, allRoutes, isLoading }) {
           </div>
           <input
             id="userInput"
-            className="block p-3 pl-10 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-rose-500 focus:border-rose-500 rounded-r-none"
+            className="block p-3 pl-10 w-full text-base text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-rose-500 focus:border-rose-500 rounded-r-none touch-action-manipulation"
             placeholder={isLoading ? "載入路線資料中..." : "輸入巴士路線"}
             type="text"
             value={userInput}
@@ -125,14 +125,14 @@ function SearchForm({ showError, checkRouteExists, allRoutes, isLoading }) {
       {showSuggestions && (
         <div
           ref={wrapperRef}
-          className="absolute z-10 w-[234px] bg-white border border-rose-200 rounded-md shadow-md top-[calc(100%+0.25rem)] left-0 max-h-60 overflow-y-auto"
+          className="absolute z-20 w-full bg-white border border-rose-200 rounded-md shadow-md top-[100%] left-0 max-h-60 overflow-y-auto"
         >
           {suggestions.length > 0 ? (
             <ul>
               {suggestions.map((route) => (
                 <li
                   key={route}
-                  className="px-3 py-2 text-sm text-rose-600 hover:bg-rose-100 cursor-pointer"
+                  className="px-3 py-4 text-sm text-rose-600 hover:bg-rose-100 cursor-pointer"
                   onClick={() => handleSuggestionClick(route)}
                 >
                   {route}

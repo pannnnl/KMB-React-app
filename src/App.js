@@ -4,7 +4,7 @@ import SearchForm from "./components/SearchForm";
 import BoundContainer from "./components/BoundContainer";
 import StopList from "./components/StopList";
 
-// 定義KMB API的基本URL
+// 定義 KMB API 的基本 URL
 const baseURL = "https://data.etabus.gov.hk/v1/transport/kmb";
 
 function App() {
@@ -17,7 +17,7 @@ function App() {
   const [stopList, setStopList] = useState([]); // 路線的站點列表
   const [isLoading, setIsLoading] = useState(true); // 載入狀態，初始為true
 
-  // 輔助函數：帶重試機制的fetch
+  // 輔助函數：帶重試機制的 fetch
   async function fetchWithRetry(url, retries = 3, delay = 1000) {
     for (let i = 0; i < retries; i++) {
       try {
@@ -44,13 +44,13 @@ function App() {
     try {
       const response = await fetchWithRetry(url);
       console.log(
-        `路線站點資料 (路線: ${route}, service_type: ${service_type}, 方向: ${mappedBound}):`,
+        `路線站點資料 (路線: ${route}, 方向: ${mappedBound}):`,
         response
       );
       return response.data || [];
     } catch (error) {
       console.error(
-        `Error fetching stop data for route ${route} (service_type: ${service_type}, ${mappedBound}):`,
+        `Error fetching stop data for route ${route} (${mappedBound}):`,
         error.message
       );
       return null;
@@ -115,7 +115,7 @@ function App() {
     }
 
     fetchRouteStop();
-  }, [selectedRouteObj]); // 依賴selectedRouteObj
+  }, [selectedRouteObj]); // 依賴 selectedRouteObj
 
   // 檢查用戶輸入的路線是否存在
   function checkRouteExists(userInput) {
@@ -177,14 +177,14 @@ function App() {
       {errorMsg && (
         <p
           id="errorMsg"
-          className="border bg-rose-50 border-rose-600 py-2 px-4 rounded-md w-[200px] text-center mx-auto mt-4"
+          className="border bg-rose-50 border-rose-600 py-2 px-4 rounded-md w-[200px] text-center mx-auto mt-4 z-0"
         >
           {errorMsg}
         </p>
       )}
       {/* 顯示站點載入提示 */}
       {isLoading && stopList.length > 0 && (
-        <p className="text-center text-rose-600 mt-4">載入站點資料...</p>
+        <p className="text-center text-rose-600 mt-4 z-0">載入站點資料...</p>
       )}
       {/* 顯示路線方向選擇 */}
       {selectedRoute.length > 0 && (
