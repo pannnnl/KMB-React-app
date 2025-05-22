@@ -3,7 +3,6 @@ import Logo from "./components/Logo";
 import SearchForm from "./components/SearchForm";
 import BoundContainer from "./components/BoundContainer";
 import StopList from "./components/StopList";
-import { SpeedInsights } from "@vercel/speed-insights/react";
 
 // 定義KMB API的基本URL
 const baseURL = "https://data.etabus.gov.hk/v1/transport/kmb";
@@ -66,7 +65,7 @@ function App() {
     }
 
     fetchData();
-  }, []); // 僅在組件掛載時執行
+  }, []); // 無依賴，僅初次載入
 
   // 當選擇的路線物件改變時，獲取路線站點資料
   useEffect(() => {
@@ -97,9 +96,9 @@ function App() {
     }
 
     fetchRouteStop();
-  }, [selectedRouteObj]); // 當selectedRouteObj改變時執行
+  }, [selectedRouteObj]); // 依賴selectedRouteObj
 
-  // 檢查用戶輸入的路線是否存在
+  // 檢查用戶輸入的路線是否存在（移除尾班車檢查）
   function checkRouteExists(userInput) {
     if (isLoading) {
       // 如果正在載入，阻止操作
@@ -164,7 +163,7 @@ function App() {
           {errorMsg}
         </p>
       )}
-      {/* 顯示站點載入提示 */}
+      {/* 顯示站點載入提示，移除檢查可用性提示 */}
       {isLoading && stopList.length > 0 && (
         <p className="text-center text-rose-600 mt-4">載入站點資料...</p>
       )}
@@ -177,7 +176,6 @@ function App() {
       )}
       {/* 顯示站點列表 */}
       <StopList stopListArr={stopList} allStops={allStops} />
-      <SpeedInsights />
     </>
   );
 }
