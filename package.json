@@ -1,5 +1,6 @@
 {
-  "name": "kmb-react-app",
+  "name": "busclock-kmb",
+  "displayName": "BusClock KMB",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
