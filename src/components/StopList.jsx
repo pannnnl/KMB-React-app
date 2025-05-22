@@ -6,6 +6,7 @@ function StopList({ stopListArr, allStops, selectedBound }) {
   const [isLoading, setIsLoading] = useState(false); // ETA載入狀態
   const [expandedStop, setExpandedStop] = useState(null); // 當前展開的站點ID
   const [etaError, setEtaError] = useState(""); // ETA錯誤訊息
+  const [currentTime, setCurrentTime] = useState(new Date()); // 用於即時更新畫面
 
   // 快取 ETA 結果，避免重複請求
   const etaCache = useRef({});
@@ -79,22 +80,30 @@ function StopList({ stopListArr, allStops, selectedBound }) {
     [selectedBound]
   ); // 依賴 selectedBound
 
-  // 定時更新展開站點的ETA
+  // 定時更新展開站點的ETA（縮短間隔到15秒）
   useEffect(() => {
     if (expandedStop) {
       const stopObj = stopListArr.find((s) => s.stop === expandedStop);
       if (stopObj) {
         fetchETAForStop(stopObj); // 初次獲取ETA
-        // 每30秒更新一次
+        // 每15秒更新一次
         const interval = setInterval(() => {
           console.log(`更新ETA（站點：${expandedStop}）`);
           fetchETAForStop(stopObj);
-        }, 30000);
+        }, 15000); // 縮短到15秒
         // 清理計時器，防止記憶體洩漏
         return () => clearInterval(interval);
       }
     }
-  }, [expandedStop, stopListArr, fetchETAForStop]); // fetchETAForStop 已穩定
+  }, [expandedStop, stopListArr, fetchETAForStop]);
+
+  // 即時更新畫面上的 ETA 列表（每5秒）
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentTime(new Date()); // 每5秒更新當前時間，觸發重新渲染
+    }, 5000);
+    return () => clearInterval(interval);
+  }, []);
 
   // 處理站點點擊，展開或收起
   const handleStopClick = (stopId, stopObj) => {
@@ -128,24 +137,33 @@ function StopList({ stopListArr, allStops, selectedBound }) {
           // 計算最近3班車的ETA和剩餘分鐘，顯示方向
           const nextETAs =
             eta.length > 0
-              ? eta.slice(0, 3).map((e) => {
-                  if (!e.eta) {
-                    return { time: "無", minutes: "-", dir: "-" };
-                  }
-                  const etaTime = new Date(e.eta);
-                  const now = new Date();
-                  const minutes = Math.round((etaTime - now) / 1000 / 60); // 計算分鐘差
-                  const timeStr = etaTime.toLocaleTimeString("zh-HK", {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  });
-                  return {
-                    time: timeStr,
-                    minutes: minutes > 0 ? `${minutes}分鐘` : "即將到達",
-                    dir:
-                      e.dir === "O" ? "去線" : e.dir === "I" ? "來線" : "未知",
-                  };
-                })
+              ? eta
+                  .filter((e) => {
+                    if (!e.eta) return false;
+                    const etaTime = new Date(e.eta);
+                    return etaTime >= currentTime; // 過濾已過期的班次
+                  })
+                  .slice(0, 3)
+                  .map((e) => {
+                    const etaTime = new Date(e.eta);
+                    const minutes = Math.round(
+                      (etaTime - currentTime) / 1000 / 60
+                    ); // 使用 currentTime 計算
+                    const timeStr = etaTime.toLocaleTimeString("zh-HK", {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    });
+                    return {
+                      time: timeStr,
+                      minutes: minutes > 0 ? `${minutes}分鐘` : "即將到達",
+                      dir:
+                        e.dir === "O"
+                          ? "去線"
+                          : e.dir === "I"
+                          ? "來線"
+                          : "未知",
+                    };
+                  })
               : [{ time: "無即將到站", minutes: "-", dir: "-" }];
 
           return (
@@ -173,7 +191,7 @@ function StopList({ stopListArr, allStops, selectedBound }) {
                     <div>{etaError}</div>
                   ) : (
                     <div>
-                      {/* 先隱藏選擇方向 因為用戶不需要知道  */}
+                      {/*先隱藏來去方向 因為用戶不需要知道*/}
                       {/* <p className="mb-1">
                         選擇方向: {selectedBound === "O" ? "去線" : "來線"}
                       </p> */}
@@ -181,8 +199,7 @@ function StopList({ stopListArr, allStops, selectedBound }) {
                         <div key={index}>
                           第{index + 1}班: {eta.time}{" "}
                           {eta.minutes !== "-" && `(${eta.minutes})`}
-                          {/* ({eta.dir}) */}{" "}
-                          {/* 先隱藏方向 因為用戶不需要知道  */}
+                          {/* ({eta.dir})  先隱藏來去方向 因為用戶不需要知道*/}
                         </div>
                       ))}
                     </div>
