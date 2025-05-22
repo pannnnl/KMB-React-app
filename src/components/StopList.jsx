@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 
-function StopList({ stopListArr, allStops }) {
+function StopList({ stopListArr, allStops, selectedBound }) {
   // 狀態定義
   const [etaData, setEtaData] = useState({}); // 儲存每個站點的ETA資料，鍵為stop ID
   const [isLoading, setIsLoading] = useState(false); // ETA載入狀態
@@ -44,7 +44,7 @@ function StopList({ stopListArr, allStops }) {
   const fetchETAForStop = useCallback(
     async (stopObj) => {
       const { stop, route, service_type } = stopObj;
-      const cacheKey = `${stop}-${route}-${service_type}`;
+      const cacheKey = `${stop}-${route}-${service_type}-${selectedBound}`;
 
       // 檢查快取
       if (etaCache.current[cacheKey]) {
@@ -55,10 +55,20 @@ function StopList({ stopListArr, allStops }) {
 
       setIsLoading(true); // 開始載入
       setEtaError(""); // 清除舊錯誤
-      const eta = await fetchETA(stop, route, service_type);
+      let eta = await fetchETA(stop, route, service_type);
       if (eta.length === 0) {
         setEtaError("無法獲取到站時間，請稍後重試"); // 無資料時設置錯誤
+        setEtaData((prev) => ({ ...prev, [stop]: [] }));
+        setIsLoading(false);
+        return;
       }
+
+      // 根據 bound 過濾 eta 數據
+      eta = eta.filter((e) => e.dir === selectedBound);
+
+      // 按到達時間排序
+      eta.sort((a, b) => new Date(a.eta) - new Date(b.eta));
+
       etaCache.current[cacheKey] = eta; // 儲存到快取
       setEtaData((prev) => ({
         ...prev,
@@ -66,8 +76,8 @@ function StopList({ stopListArr, allStops }) {
       }));
       setIsLoading(false); // 結束載入
     },
-    [fetchETA]
-  ); // 添加 fetchETA 作為依賴
+    [selectedBound]
+  ); // 依賴 selectedBound
 
   // 定時更新展開站點的ETA
   useEffect(() => {
@@ -112,12 +122,15 @@ function StopList({ stopListArr, allStops }) {
           const isExpanded = expandedStop === stop; // 是否展開當前站點
           const eta = etaData[stop] || []; // 當前站點的ETA資料
 
-          // 計算最近3班車的ETA和剩餘分鐘
+          // 判斷是否為頭站或尾站
+          const isHeadOrTailStation = seq === 1 || seq === stopListArr.length;
+
+          // 計算最近3班車的ETA和剩餘分鐘，顯示方向
           const nextETAs =
             eta.length > 0
               ? eta.slice(0, 3).map((e) => {
                   if (!e.eta) {
-                    return { time: "無", minutes: "-" };
+                    return { time: "無", minutes: "-", dir: "-" };
                   }
                   const etaTime = new Date(e.eta);
                   const now = new Date();
@@ -129,9 +142,11 @@ function StopList({ stopListArr, allStops }) {
                   return {
                     time: timeStr,
                     minutes: minutes > 0 ? `${minutes}分鐘` : "即將到達",
+                    dir:
+                      e.dir === "O" ? "去線" : e.dir === "I" ? "來線" : "未知",
                   };
                 })
-              : [{ time: "無即將到站", minutes: "-" }];
+              : [{ time: "無即將到站", minutes: "-", dir: "-" }];
 
           return (
             <div
@@ -143,12 +158,13 @@ function StopList({ stopListArr, allStops }) {
               <div className="flex justify-between items-center">
                 <span>
                   {seq} - {stopArrWithName[0]?.name_tc || "未知站點"}
+                  {isHeadOrTailStation && " (頭尾站)"}
                 </span>
                 <span className="text-rose-600 text-sm">
                   {isExpanded ? "" : ""}
                 </span>
               </div>
-              {/* 展開時顯示ETA，移除淡入動畫 */}
+              {/* 展開時顯示ETA，顯示方向 */}
               {isExpanded && (
                 <div className="mt-2 text-sm text-rose-600">
                   {isLoading ? (
@@ -157,10 +173,16 @@ function StopList({ stopListArr, allStops }) {
                     <div>{etaError}</div>
                   ) : (
                     <div>
+                      {/* 先隱藏選擇方向 因為用戶不需要知道  */}
+                      {/* <p className="mb-1">
+                        選擇方向: {selectedBound === "O" ? "去線" : "來線"}
+                      </p> */}
                       {nextETAs.map((eta, index) => (
                         <div key={index}>
                           第{index + 1}班: {eta.time}{" "}
                           {eta.minutes !== "-" && `(${eta.minutes})`}
+                          {/* ({eta.dir}) */}{" "}
+                          {/* 先隱藏方向 因為用戶不需要知道  */}
                         </div>
                       ))}
                     </div>

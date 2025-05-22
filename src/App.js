@@ -37,6 +37,26 @@ function App() {
     }
   }
 
+  // 獲取路線站點資料
+  async function fetchStopData(route, service_type, bound) {
+    const mappedBound = bound === "O" ? "outbound" : "inbound";
+    const url = `${baseURL}/route-stop/${route}/${mappedBound}/${service_type}`;
+    try {
+      const response = await fetchWithRetry(url);
+      console.log(
+        `路線站點資料 (路線: ${route}, service_type: ${service_type}, 方向: ${mappedBound}):`,
+        response
+      );
+      return response.data || [];
+    } catch (error) {
+      console.error(
+        `Error fetching stop data for route ${route} (service_type: ${service_type}, ${mappedBound}):`,
+        error.message
+      );
+      return null;
+    }
+  }
+
   // 初次載入時獲取路線和巴士站資料
   useEffect(() => {
     async function fetchData() {
@@ -79,12 +99,11 @@ function App() {
 
       setIsLoading(true); // 開始載入站點
       try {
-        const url = `${baseURL}/route-stop/${route}/${
-          bound === "I" ? "inbound" : "outbound"
-        }/${service_type}`;
-        const results = await fetchWithRetry(url);
-        console.log("路線站點資料:", results);
-        setStopList(results.data);
+        const stopData = await fetchStopData(route, service_type, bound);
+        if (stopData === null) {
+          throw new Error("無法獲取站點資料");
+        }
+        setStopList(stopData);
         setErrorMsg(""); // 清除錯誤
       } catch (error) {
         console.error("獲取路線站點失敗:", error.message, error.stack);
@@ -98,7 +117,7 @@ function App() {
     fetchRouteStop();
   }, [selectedRouteObj]); // 依賴selectedRouteObj
 
-  // 檢查用戶輸入的路線是否存在（移除尾班車檢查）
+  // 檢查用戶輸入的路線是否存在
   function checkRouteExists(userInput) {
     if (isLoading) {
       // 如果正在載入，阻止操作
@@ -163,7 +182,7 @@ function App() {
           {errorMsg}
         </p>
       )}
-      {/* 顯示站點載入提示，移除檢查可用性提示 */}
+      {/* 顯示站點載入提示 */}
       {isLoading && stopList.length > 0 && (
         <p className="text-center text-rose-600 mt-4">載入站點資料...</p>
       )}
@@ -174,8 +193,12 @@ function App() {
           selectRouteObj={setSelectedRouteObj}
         />
       )}
-      {/* 顯示站點列表 */}
-      <StopList stopListArr={stopList} allStops={allStops} />
+      {/* 顯示站點列表，傳遞 bound 資訊 */}
+      <StopList
+        stopListArr={stopList}
+        allStops={allStops}
+        selectedBound={selectedRouteObj.bound}
+      />
     </>
   );
 }
