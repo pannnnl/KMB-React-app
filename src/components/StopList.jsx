@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 
 function StopList({ stopListArr, allStops }) {
   // 狀態定義
@@ -7,15 +7,31 @@ function StopList({ stopListArr, allStops }) {
   const [expandedStop, setExpandedStop] = useState(null); // 當前展開的站點ID
   const [etaError, setEtaError] = useState(""); // ETA錯誤訊息
 
-  // 輔助函數：獲取單個站點的ETA
+  // 快取 ETA 結果，避免重複請求
+  const etaCache = useRef({});
+
+  // 輔助函數：帶超時機制的 fetch
+  const fetchWithTimeout = async (url, timeout = 5000) => {
+    const controller = new AbortController();
+    const id = setTimeout(() => controller.abort(), timeout);
+    try {
+      const response = await fetch(url, { signal: controller.signal });
+      clearTimeout(id);
+      if (!response.ok) {
+        throw new Error(`HTTP錯誤: ${response.status} ${response.statusText}`);
+      }
+      return await response.json();
+    } catch (error) {
+      clearTimeout(id);
+      throw error;
+    }
+  };
+
+  // 獲取單個站點的ETA，添加超時機制
   async function fetchETA(stopId, route, service_type) {
     const etaAPI = `https://data.etabus.gov.hk/v1/transport/kmb/eta/${stopId}/${route}/${service_type}`;
     try {
-      const res = await fetch(etaAPI);
-      if (!res.ok) {
-        throw new Error(`ETA API失敗: ${res.status} ${res.statusText}`);
-      }
-      const results = await res.json();
+      const results = await fetchWithTimeout(etaAPI);
       console.log(`ETA資料（站點：${stopId}）:`, results);
       return results.data;
     } catch (error) {
@@ -24,21 +40,34 @@ function StopList({ stopListArr, allStops }) {
     }
   }
 
-  // 獲取指定站點的ETA並更新狀態
-  const fetchETAForStop = async (stopObj) => {
-    const { stop, route, service_type } = stopObj;
-    setIsLoading(true); // 開始載入
-    setEtaError(""); // 清除舊錯誤
-    const eta = await fetchETA(stop, route, service_type);
-    if (eta.length === 0) {
-      setEtaError("無法獲取到站時間，請稍後重試"); // 無資料時設置錯誤
-    }
-    setEtaData((prev) => ({
-      ...prev,
-      [stop]: eta,
-    }));
-    setIsLoading(false); // 結束載入
-  };
+  // 獲取指定站點的ETA並更新狀態，使用 useCallback 確保穩定性
+  const fetchETAForStop = useCallback(
+    async (stopObj) => {
+      const { stop, route, service_type } = stopObj;
+      const cacheKey = `${stop}-${route}-${service_type}`;
+
+      // 檢查快取
+      if (etaCache.current[cacheKey]) {
+        setEtaData((prev) => ({ ...prev, [stop]: etaCache.current[cacheKey] }));
+        setIsLoading(false);
+        return;
+      }
+
+      setIsLoading(true); // 開始載入
+      setEtaError(""); // 清除舊錯誤
+      const eta = await fetchETA(stop, route, service_type);
+      if (eta.length === 0) {
+        setEtaError("無法獲取到站時間，請稍後重試"); // 無資料時設置錯誤
+      }
+      etaCache.current[cacheKey] = eta; // 儲存到快取
+      setEtaData((prev) => ({
+        ...prev,
+        [stop]: eta,
+      }));
+      setIsLoading(false); // 結束載入
+    },
+    [fetchETA]
+  ); // 添加 fetchETA 作為依賴
 
   // 定時更新展開站點的ETA
   useEffect(() => {
@@ -55,7 +84,7 @@ function StopList({ stopListArr, allStops }) {
         return () => clearInterval(interval);
       }
     }
-  }, [expandedStop, stopListArr]); // 當expandedStop或stopListArr改變時執行
+  }, [expandedStop, stopListArr, fetchETAForStop]); // fetchETAForStop 已穩定
 
   // 處理站點點擊，展開或收起
   const handleStopClick = (stopId, stopObj) => {
@@ -78,7 +107,7 @@ function StopList({ stopListArr, allStops }) {
     >
       {stopListArr.length > 0 &&
         stopListArr.map((stopObj) => {
-          const { bound, route, seq, service_type, stop } = stopObj;
+          const { seq, stop } = stopObj; // 移除未使用的 bound, route, service_type
           const stopArrWithName = allStops.filter((s) => s.stop === stop);
           const isExpanded = expandedStop === stop; // 是否展開當前站點
           const eta = etaData[stop] || []; // 當前站點的ETA資料
@@ -119,7 +148,7 @@ function StopList({ stopListArr, allStops }) {
                   {isExpanded ? "" : ""}
                 </span>
               </div>
-              {/* 展開時顯示ETA */}
+              {/* 展開時顯示ETA，移除淡入動畫 */}
               {isExpanded && (
                 <div className="mt-2 text-sm text-rose-600">
                   {isLoading ? (

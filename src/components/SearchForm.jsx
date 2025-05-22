@@ -125,7 +125,7 @@ function SearchForm({ showError, checkRouteExists, allRoutes, isLoading }) {
       {showSuggestions && (
         <div
           ref={wrapperRef}
-          className="absolute z-10 w-full max-w-xs bg-white border border-rose-200 rounded-md shadow-md top-[calc(100%+0.25rem)] left-0 max-h-60 overflow-y-auto"
+          className="absolute z-10 w-[234px] bg-white border border-rose-200 rounded-md shadow-md top-[calc(100%+0.25rem)] left-0 max-h-60 overflow-y-auto"
         >
           {suggestions.length > 0 ? (
             <ul>
