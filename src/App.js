@@ -19,7 +19,6 @@ function App() {
 
   // 輔助函數：帶重試機制的fetch
   async function fetchWithRetry(url, retries = 3, delay = 1000) {
-    // 最多重試3次，每次失敗後等待1秒
     for (let i = 0; i < retries; i++) {
       try {
         const res = await fetch(url);
@@ -41,9 +40,9 @@ function App() {
   // 初次載入時獲取路線和巴士站資料
   useEffect(() => {
     async function fetchData() {
-      setIsLoading(true); // 開始載入，設置載入狀態
+      setIsLoading(true); // 開始載入
       try {
-        // 使用Promise.all並行請求路線和站點資料，減少等待時間
+        // 並行請求路線和站點資料
         const [routeResults, stopResults] = await Promise.all([
           fetchWithRetry(`${baseURL}/route`),
           fetchWithRetry(`${baseURL}/stop`),
@@ -56,30 +55,29 @@ function App() {
         // 更新狀態
         setAllRoutes(routeResults.data);
         setAllStops(stopResults.data);
-        setErrorMsg(""); // 清除任何舊錯誤
+        setErrorMsg(""); // 清除錯誤
       } catch (error) {
-        // 捕獲錯誤，顯示友好提示
         console.error("獲取資料失敗:", error.message, error.stack);
         setErrorMsg("無法載入路線或站點資料，請稍後重試");
       } finally {
-        setIsLoading(false); // 無論成功或失敗，結束載入
+        setIsLoading(false); // 結束載入
       }
     }
 
     fetchData();
-  }, []); // 空依賴陣列，僅在組件掛載時執行
+  }, []); // 僅在組件掛載時執行
 
   // 當選擇的路線物件改變時，獲取路線站點資料
   useEffect(() => {
     async function fetchRouteStop() {
       const { route, service_type, bound } = selectedRouteObj;
-      // 確保route、service_type、bound存在，避免無效請求
+      // 確保route、service_type、bound存在
       if (!route || !service_type || !bound) {
-        setStopList([]); // 清空舊站點列表
+        console.log("無效路線物件，跳過fetchRouteStop:", selectedRouteObj);
         return;
       }
 
-      setIsLoading(true); // 開始載入站點資料
+      setIsLoading(true); // 開始載入站點
       try {
         const url = `${baseURL}/route-stop/${route}/${
           bound === "I" ? "inbound" : "outbound"
@@ -103,19 +101,30 @@ function App() {
   // 檢查用戶輸入的路線是否存在
   function checkRouteExists(userInput) {
     if (isLoading) {
-      // 如果正在載入，阻止操作並顯示提示
+      // 如果正在載入，阻止操作
       setErrorMsg("資料載入中，請稍候...");
       return;
     }
-    // 篩選匹配的路線
-    const busRoutes = allRoutes.filter((r) => r.route === userInput);
+    // 篩選匹配的路線，忽略大小寫
+    const busRoutes = allRoutes.filter(
+      (r) => r.route.toUpperCase() === userInput.toUpperCase()
+    );
+    console.log("搜尋路線:", userInput, "匹配結果:", busRoutes);
+
     if (busRoutes.length < 1) {
+      // 無效路線，清空所有相關狀態
       setErrorMsg("無呢條線喎！");
       setSelectedRoute([]);
+      setSelectedRouteObj({});
+      setStopList([]);
       return;
     }
+
+    // 成功找到路線，更新狀態
     setSelectedRoute(busRoutes);
-    setErrorMsg(""); // 成功時清除錯誤
+    setSelectedRouteObj({}); // 等待用戶選擇方向
+    setStopList([]); // 清空舊站點列表
+    setErrorMsg(""); // 清除錯誤
   }
 
   // 處理錯誤訊息顯示
@@ -141,6 +150,8 @@ function App() {
         <SearchForm
           showError={handleShowError}
           checkRouteExists={checkRouteExists}
+          allRoutes={allRoutes}
+          isLoading={isLoading}
         />
       </div>
       {/* 顯示錯誤訊息 */}

@@ -1,27 +1,78 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 
-function SearchForm({ showError, checkRouteExists }) {
-  const [userInput, setUserInput] = useState("");
+function SearchForm({ showError, checkRouteExists, allRoutes, isLoading }) {
+  // 狀態定義
+  const [userInput, setUserInput] = useState(""); // 用戶輸入的路線號碼
+  const [suggestions, setSuggestions] = useState([]); // 過濾後的路線建議
+  const [showSuggestions, setShowSuggestions] = useState(false); // 是否顯示選單
+  const wrapperRef = useRef(null); // 用於監聽輸入框焦點
+
+  // 處理輸入變化
   function handleUserInputChange(e) {
     const input = e.target.value.trim().replaceAll(" ", "").toUpperCase();
     setUserInput(input);
+
+    // 如果輸入為空，清空建議並隱藏選單
+    if (!input) {
+      setSuggestions([]);
+      setShowSuggestions(false);
+      return;
+    }
+
+    // 過濾匹配的路線（以輸入開頭，忽略大小寫）
+    const filteredRoutes = allRoutes
+      .filter((routeObj) => routeObj.route.toUpperCase().startsWith(input))
+      .map((routeObj) => routeObj.route)
+      .sort();
+    setSuggestions([...new Set(filteredRoutes)]); // 去除重複路線
+    setShowSuggestions(true); // 顯示選單
   }
 
+  // 處理選單項點擊
+  function handleSuggestionClick(route) {
+    console.log("選擇路線:", route); // 記錄選擇的路線
+    setUserInput(route); // 僅更新輸入框
+    setShowSuggestions(false); // 隱藏選單
+    // 不調用checkRouteExists，等待用戶點擊搜尋按鈕
+  }
+
+  // 處理搜尋按鈕點擊
   function handleOnClick(e) {
     e.preventDefault();
-    const regex = new RegExp(/^[a-zA-Z0-9]*$/);
-    if (regex.test(userInput)) {
-      checkRouteExists(userInput);
-    } else {
+    const regex = new RegExp(/^[a-zA-Z0-9]*$/); // 驗證輸入
+    if (!regex.test(userInput)) {
       showError("唔好玩嘢喎！");
+      return;
     }
+    if (!userInput) {
+      showError("請輸入路線號碼！");
+      return;
+    }
+    console.log("按鈕搜尋:", userInput); // 記錄按鈕搜尋
+    showError(""); // 清除錯誤
+    checkRouteExists(userInput); // 觸發搜尋，顯示路線資料
+    setShowSuggestions(false); // 隱藏選單
   }
+
+  // 監聽點擊事件，點擊選單外隱藏建議
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (wrapperRef.current && !wrapperRef.current.contains(event.target)) {
+        setShowSuggestions(false); // 點擊輸入框外，隱藏選單
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside); // 清理事件
+    };
+  }, []);
+
   return (
-    <div>
-      <div className="items-center mx-auto mb-3 space-y-4 max-w-sm sm:flex sm:space-y-0">
-        <div className="relative w-full">
+    <div className="relative flex flex-col items-center mx-auto mb-3 max-w-sm">
+      <div className="w-full flex">
+        <div className="relative flex-1">
           <label
-            htmlFor="email"
+            htmlFor="userInput"
             className="hidden mb-2 text-sm font-medium text-gray-900"
           >
             巴士路線
@@ -50,23 +101,49 @@ function SearchForm({ showError, checkRouteExists }) {
           </div>
           <input
             id="userInput"
-            className="block p-3 pl-10 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 sm:rounded-none sm:rounded-l-lg focus:ring-rose-500 focus:border-rose-500"
-            placeholder="輸入巴士路線"
+            className="block p-3 pl-10 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-rose-500 focus:border-rose-500 rounded-r-none"
+            placeholder={isLoading ? "載入路線資料中..." : "輸入巴士路線"}
             type="text"
             value={userInput}
             onChange={handleUserInputChange}
+            onFocus={() => userInput && setShowSuggestions(true)}
+            disabled={isLoading}
           />
         </div>
         <div className="w-[150px]">
           <button
             id="submitBtn"
-            className="py-3 px-5 w-full text-sm font-medium text-center text-white rounded-lg border cursor-pointer bg-rose-700 border-rose-600 sm:rounded-none sm:rounded-r-lg hover:bg-rose-800 focus:ring-4 focus:ring-rose-300"
+            className="py-3 px-5 w-full text-sm font-medium text-center text-white rounded-lg border cursor-pointer bg-rose-700 border-rose-600 rounded-l-none hover:bg-rose-800 focus:ring-4 focus:ring-rose-300"
             onClick={handleOnClick}
+            disabled={isLoading}
           >
             搜尋路線
           </button>
         </div>
       </div>
+      {/* 下拉選單，定位在輸入框正下方 */}
+      {showSuggestions && (
+        <div
+          ref={wrapperRef}
+          className="absolute z-10 w-full max-w-xs bg-white border border-rose-200 rounded-md shadow-md top-[calc(100%+0.25rem)] left-0 max-h-60 overflow-y-auto"
+        >
+          {suggestions.length > 0 ? (
+            <ul>
+              {suggestions.map((route) => (
+                <li
+                  key={route}
+                  className="px-3 py-2 text-sm text-rose-600 hover:bg-rose-100 cursor-pointer"
+                  onClick={() => handleSuggestionClick(route)}
+                >
+                  {route}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <div className="px-4 py-2 text-sm text-rose-600">無匹配路線</div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
