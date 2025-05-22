@@ -37,7 +37,7 @@ function StopList({ stopListArr, allStops, selectedBound }) {
       return results.data;
     } catch (error) {
       console.error(`獲取ETA失敗（站點：${stopId}）:`, error.message);
-      return []; // 返回空陣列作為備用
+      return null; // 返回 null 表示 API 錯誤
     }
   }
 
@@ -56,31 +56,31 @@ function StopList({ stopListArr, allStops, selectedBound }) {
 
       setIsLoading(true); // 開始載入
       setEtaError(""); // 清除舊錯誤
-      let eta = await fetchETA(stop, route, service_type);
-      if (eta.length === 0) {
-        setEtaError("無法獲取到站時間，請稍後重試"); // 無資料時設置錯誤
+      const eta = await fetchETA(stop, route, service_type);
+      if (eta === null) {
+        setEtaError("無法獲取到站時間，請稍後重試"); // API 錯誤
         setEtaData((prev) => ({ ...prev, [stop]: [] }));
         setIsLoading(false);
         return;
       }
 
       // 根據 bound 過濾 eta 數據
-      eta = eta.filter((e) => e.dir === selectedBound);
+      let filteredEta = eta.filter((e) => e.dir === selectedBound);
 
       // 按到達時間排序
-      eta.sort((a, b) => new Date(a.eta) - new Date(b.eta));
+      filteredEta.sort((a, b) => new Date(a.eta) - new Date(b.eta));
 
-      etaCache.current[cacheKey] = eta; // 儲存到快取
+      etaCache.current[cacheKey] = filteredEta; // 儲存到快取
       setEtaData((prev) => ({
         ...prev,
-        [stop]: eta,
+        [stop]: filteredEta,
       }));
       setIsLoading(false); // 結束載入
     },
     [selectedBound]
   ); // 依賴 selectedBound
 
-  // 定時更新展開站點的ETA（縮短間隔到15秒）
+  // 定時更新展開站點的ETA（每15秒）
   useEffect(() => {
     if (expandedStop) {
       const stopObj = stopListArr.find((s) => s.stop === expandedStop);
@@ -158,11 +158,11 @@ function StopList({ stopListArr, allStops, selectedBound }) {
                       minutes: minutes > 0 ? `${minutes}分鐘` : "即將到達",
                     };
                   })
-              : [{ time: "無即將到站", minutes: "-" }];
+              : [{ time: "無車", minutes: "-" }]; // 當 eta 為空時顯示「無車」
 
           return (
             <div
-              className="py-2 px-4 cursor-pointer flex flex-col border border-rose-500 w-full sm:w-[300px] rounded-md mb-4 hover:bg-rose-100"
+              className="py-2 px-4 cursor-pointer flex flex-col border border-rose-500 w-[300px] rounded-md mb-4 hover:bg-rose-100"
               key={stop}
               onClick={() => handleStopClick(stop, stopObj)}
             >
@@ -187,8 +187,11 @@ function StopList({ stopListArr, allStops, selectedBound }) {
                     <div>
                       {nextETAs.map((eta, index) => (
                         <div key={index}>
-                          第{index + 1}班: {eta.time}{" "}
-                          {eta.minutes !== "-" && `(${eta.minutes})`}
+                          {eta.time === "無車"
+                            ? "無車"
+                            : `第${index + 1}班: ${eta.time} ${
+                                eta.minutes !== "-" && `(${eta.minutes})`
+                              }`}
                         </div>
                       ))}
                     </div>

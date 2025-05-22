@@ -8,9 +8,9 @@ export default function BoundContainer({ routeArr, selectRouteObj }) {
   );
 
   return (
-    <div className="flex flex-col sm:flex-row justify-center mt-4 gap-2">
+    <div className="flex justify-center mt-4 gap-4">
       {/* 左欄：常規路線 */}
-      <div className="w-full sm:w-[230px] flex flex-col items-center">
+      <div className="w-[250px] flex flex-col items-center">
         {regularRoutes.length > 0 && (
           <>
             <h3 className="text-rose-600 font-semibold mb-2">常規</h3>
@@ -19,7 +19,7 @@ export default function BoundContainer({ routeArr, selectRouteObj }) {
               return (
                 <div
                   key={`${route}-${service_type}-${bound}`}
-                  className="border border-rose-500 bg-rose-50 text-rose-600 rounded-md px-4 py-2 cursor-pointer hover:bg-rose-200 transition duration-300 mb-2 w-full sm:w-[200px] text-center"
+                  className="border border-rose-500 bg-rose-50 text-rose-600 rounded-md px-4 py-2 cursor-pointer hover:bg-rose-200 transition duration-300 mb-2 w-[200px] text-center"
                   onClick={() => selectRouteObj(routeObj)}
                 >
                   {orig_tc} ➡️ {dest_tc}
@@ -31,7 +31,7 @@ export default function BoundContainer({ routeArr, selectRouteObj }) {
       </div>
 
       {/* 右欄：特別班次 */}
-      <div className="w-full sm:w-[230px] flex flex-col items-center">
+      <div className="w-[250px] flex flex-col items-center">
         {specialRoutes.length > 0 && (
           <>
             <h3 className="text-rose-600 font-semibold mb-2">特別班次</h3>
@@ -40,7 +40,7 @@ export default function BoundContainer({ routeArr, selectRouteObj }) {
               return (
                 <div
                   key={`${route}-${service_type}-${bound}`}
-                  className="border border-rose-500 bg-rose-50 text-rose-600 rounded-md px-4 py-2 cursor-pointer hover:bg-rose-200 transition duration-300 mb-2 w-full sm:w-[200px] text-center"
+                  className="border border-rose-500 bg-rose-50 text-rose-600 rounded-md px-4 py-2 cursor-pointer hover:bg-rose-200 transition duration-300 mb-2 w-[200px] text-center"
                   onClick={() => selectRouteObj(routeObj)}
                 >
                   {orig_tc} ➡️ {dest_tc}
