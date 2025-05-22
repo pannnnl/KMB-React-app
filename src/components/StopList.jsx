@@ -47,13 +47,6 @@ function StopList({ stopListArr, allStops, selectedBound }) {
       const { stop, route, service_type } = stopObj;
       const cacheKey = `${stop}-${route}-${service_type}-${selectedBound}`;
 
-      // 檢查快取
-      if (etaCache.current[cacheKey]) {
-        setEtaData((prev) => ({ ...prev, [stop]: etaCache.current[cacheKey] }));
-        setIsLoading(false);
-        return;
-      }
-
       setIsLoading(true); // 開始載入
       setEtaError(""); // 清除舊錯誤
       const eta = await fetchETA(stop, route, service_type);
@@ -134,24 +127,30 @@ function StopList({ stopListArr, allStops, selectedBound }) {
           // 計算最近3班車的ETA和剩餘分鐘
           const nextETAs =
             eta.length > 0
-              ? eta.slice(0, 3).map((e) => {
-                  if (!e.eta) {
-                    return { time: "無車", minutes: "-" };
-                  }
-                  const etaTime = new Date(e.eta);
-                  const minutes = Math.round(
-                    (etaTime - currentTime) / 1000 / 60
-                  );
-                  const timeStr = etaTime.toLocaleTimeString("zh-HK", {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                    hour12: false, // 使用 24 小時制
-                  });
-                  return {
-                    time: timeStr,
-                    minutes: minutes > 0 ? `${minutes}分鐘` : "即將到達",
-                  };
-                })
+              ? eta
+                  .filter((e) => {
+                    if (!e.eta || isNaN(new Date(e.eta).getTime())) {
+                      return false; // 過濾無效日期
+                    }
+                    const etaTime = new Date(e.eta);
+                    return etaTime >= currentTime; // 過濾過期班次
+                  })
+                  .slice(0, 3)
+                  .map((e) => {
+                    const etaTime = new Date(e.eta);
+                    const minutes = Math.round(
+                      (etaTime - currentTime) / 1000 / 60
+                    );
+                    const timeStr = etaTime.toLocaleTimeString("zh-HK", {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                      hour12: false, // 使用 24 小時制
+                    });
+                    return {
+                      time: timeStr,
+                      minutes: minutes > 0 ? `${minutes}分鐘` : "即將到達",
+                    };
+                  })
               : [{ time: "無車", minutes: "-" }];
 
           // 檢查是否有有效班次（僅檢查 minutes 是否為 "-"）
@@ -185,8 +184,8 @@ function StopList({ stopListArr, allStops, selectedBound }) {
                       {hasValidETA ? (
                         nextETAs.map((eta, index) => (
                           <div key={index}>
-                            {eta.time}{" "}
-                            {eta.minutes !== "-" && `(${eta.minutes})`}
+                            {eta.time || "未知時間"}{" "}
+                            {eta.minutes !== "-" ? `(${eta.minutes})` : ""}
                           </div>
                         ))
                       ) : (
