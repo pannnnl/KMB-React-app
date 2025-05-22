@@ -43,7 +43,7 @@ export default function BoundContainer({ routeArr, selectRouteObj }) {
                   className="border border-rose-500 bg-rose-50 text-rose-600 rounded-md px-4 py-2 cursor-pointer hover:bg-rose-200 transition duration-300 mb-2 w-[200px] text-center"
                   onClick={() => selectRouteObj(routeObj)}
                 >
-                  {orig_tc} ➡️ {dest_tc}
+                  {orig_tc} ➡️ {dest_tc} ({service_type})
                 </div>
               );
             })}
