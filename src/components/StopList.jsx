@@ -175,7 +175,7 @@ function StopList({ stopListArr, allStops, selectedBound, selectedCompany }) {
 
           return (
             <div
-              className="py-2 px-4 cursor-pointer flex flex-col border border-[#666666] w-[300px] rounded-md mb-4 hover:bg-[#666666]"
+              className="py-2 px-4 cursor-pointer flex flex-col border border-[#666666] w-[300px] rounded-md mb-4 hover:bg-[#999999]"
               key={stop}
               onClick={() => handleStopClick(stop, stopObj)}
             >

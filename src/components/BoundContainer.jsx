@@ -49,7 +49,7 @@ function BoundContainer({ routeArr, selectRouteObj }) {
             .map((route, index) => (
               <div
                 key={index}
-                className="cursor-pointer border border-[#2b2b2b] p-3 rounded-md mb-3 hover:bg-[#666666]"
+                className="cursor-pointer border border-[#2b2b2b] p-3 rounded-md mb-3 hover:bg-[#999999]"
                 onClick={() => handleRouteClick(route)}
               >
                 <p>
@@ -62,7 +62,7 @@ function BoundContainer({ routeArr, selectRouteObj }) {
             generateCtbBounds(ctbRoutes[0]).map((bound, index) => (
               <div
                 key={`ctb-${index}`}
-                className="cursor-pointer border border-[#2b2b2b] p-3 rounded-md mb-3 hover:bg-[#666666]"
+                className="cursor-pointer border border-[#2b2b2b] p-3 rounded-md mb-3 hover:bg-[#999999]"
                 onClick={() => handleRouteClick(bound)}
               >
                 <p>
@@ -80,7 +80,7 @@ function BoundContainer({ routeArr, selectRouteObj }) {
             .map((route, index) => (
               <div
                 key={index}
-                className="cursor-pointer border border-[#2b2b2b] p-3 rounded-md mb-3 hover:bg-[#666666]"
+                className="cursor-pointer border border-[#2b2b2b] p-3 rounded-md mb-3 hover:bg-[#999999]"
                 onClick={() => handleRouteClick(route)}
               >
                 <p>
