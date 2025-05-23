@@ -1,6 +1,12 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 
-function StopList({ stopListArr, allStops, selectedBound }) {
+// 定義 KMB 和城巴 API 的基本 URL
+const baseURLs = {
+  KMB: "https://data.etabus.gov.hk/v1/transport/kmb",
+  CTB: "https://rt.data.gov.hk/v2/transport/citybus",
+};
+
+function StopList({ stopListArr, allStops, selectedBound, selectedCompany }) {
   // 狀態定義
   const [etaData, setEtaData] = useState({}); // 儲存每個站點的ETA資料，鍵為stop ID
   const [isLoading, setIsLoading] = useState(false); // ETA載入狀態
@@ -28,15 +34,23 @@ function StopList({ stopListArr, allStops, selectedBound }) {
     }
   };
 
-  // 獲取單個站點的ETA，添加超時機制
-  async function fetchETA(stopId, route, service_type) {
-    const etaAPI = `https://data.etabus.gov.hk/v1/transport/kmb/eta/${stopId}/${route}/${service_type}`;
+  // 獲取單個站點的ETA，添加超時機制（支援 KMB 和城巴）
+  async function fetchETA(stopId, route, service_type, company) {
+    let etaAPI;
+    if (company === "KMB") {
+      etaAPI = `${baseURLs.KMB}/eta/${stopId}/${route}/${service_type}`;
+    } else {
+      etaAPI = `${baseURLs.CTB}/eta/CTB/${stopId}/${route}`;
+    }
     try {
       const results = await fetchWithTimeout(etaAPI);
-      console.log(`ETA資料（站點：${stopId}）:`, results);
+      console.log(`ETA資料（站點：${stopId}，公司：${company}）:`, results);
       return results.data;
     } catch (error) {
-      console.error(`獲取ETA失敗（站點：${stopId}）:`, error.message);
+      console.error(
+        `獲取ETA失敗（站點：${stopId}，公司：${company}）:`,
+        error.message
+      );
       return null; // 返回 null 表示 API 錯誤
     }
   }
@@ -45,11 +59,11 @@ function StopList({ stopListArr, allStops, selectedBound }) {
   const fetchETAForStop = useCallback(
     async (stopObj) => {
       const { stop, route, service_type } = stopObj;
-      const cacheKey = `${stop}-${route}-${service_type}-${selectedBound}`;
+      const cacheKey = `${stop}-${route}-${service_type}-${selectedBound}-${selectedCompany}`;
 
       setIsLoading(true); // 開始載入
       setEtaError(""); // 清除舊錯誤
-      const eta = await fetchETA(stop, route, service_type);
+      const eta = await fetchETA(stop, route, service_type, selectedCompany);
       if (eta === null) {
         setEtaError("無法獲取到站時間，請稍後重試"); // API 錯誤
         setEtaData((prev) => ({ ...prev, [stop]: [] }));
@@ -70,8 +84,8 @@ function StopList({ stopListArr, allStops, selectedBound }) {
       }));
       setIsLoading(false); // 結束載入
     },
-    [selectedBound]
-  ); // 依賴 selectedBound
+    [selectedBound, selectedCompany]
+  ); // 依賴 selectedBound 和 selectedCompany
 
   // 定時更新展開站點的ETA（每15秒）
   useEffect(() => {
@@ -120,7 +134,9 @@ function StopList({ stopListArr, allStops, selectedBound }) {
       {stopListArr.length > 0 &&
         stopListArr.map((stopObj) => {
           const { seq, stop } = stopObj; // 移除未使用的 bound, route, service_type
-          const stopArrWithName = allStops.filter((s) => s.stop === stop);
+          const stopArrWithName = allStops.filter(
+            (s) => s.stop === stop && s.company === selectedCompany
+          );
           const isExpanded = expandedStop === stop; // 是否展開當前站點
           const eta = etaData[stop] || []; // 當前站點的ETA資料
 
@@ -185,7 +201,8 @@ function StopList({ stopListArr, allStops, selectedBound }) {
                         nextETAs.map((eta, index) => (
                           <div key={index}>
                             {eta.time || "未知時間"}{" "}
-                            {eta.minutes !== "-" ? `(${eta.minutes})` : ""}
+                            {eta.minutes !== "-" ? `(${eta.minutes})` : ""}{" "}
+                            {selectedCompany === "KMB" ? "九巴" : "城巴"}
                           </div>
                         ))
                       ) : (
