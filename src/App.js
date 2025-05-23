@@ -296,7 +296,7 @@ function App() {
       {errorMsg && (
         <p
           id="errorMsg"
-          className="border bg-rose-50 border-rose-600 py-2 px-4 rounded-md w-[200px] text-center mx-auto mt-4 z-0"
+          className="border bg-[#999999] border-[#111111] py-2 px-4 rounded-md w-[200px] text-center mx-auto mt-4 z-0"
         >
           {errorMsg}
         </p>
