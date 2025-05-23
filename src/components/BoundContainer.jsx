@@ -53,8 +53,8 @@ function BoundContainer({ routeArr, selectRouteObj }) {
                 onClick={() => handleRouteClick(route)}
               >
                 <p>
-                  {route.orig_tc} → {route.dest_tc}（
-                  {route.bound === "O" ? "去線" : "回線"}）
+                  {route.orig_tc} → {route.dest_tc}
+                  {/* （{route.bound === "O" ? "去線" : "回線"}） */}
                 </p>
               </div>
             ))}
@@ -66,8 +66,8 @@ function BoundContainer({ routeArr, selectRouteObj }) {
                 onClick={() => handleRouteClick(bound)}
               >
                 <p>
-                  {bound.orig_tc} → {bound.dest_tc}（
-                  {bound.bound === "O" ? "去線" : "回線"}）
+                  {bound.orig_tc} → {bound.dest_tc}
+                  {/* （{bound.bound === "O" ? "去線" : "回線"}） */}
                 </p>
               </div>
             ))}
@@ -84,8 +84,8 @@ function BoundContainer({ routeArr, selectRouteObj }) {
                 onClick={() => handleRouteClick(route)}
               >
                 <p>
-                  {route.orig_tc} → {route.dest_tc}（
-                  {route.bound === "O" ? "去線" : "回線"}）
+                  {route.orig_tc} → {route.dest_tc}
+                  {/* （{route.bound === "O" ? "去線" : "回線"}） */}
                 </p>
               </div>
             ))}
