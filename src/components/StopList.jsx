@@ -190,7 +190,7 @@ function StopList({ stopListArr, allStops, selectedBound, selectedCompany }) {
               </div>
               {/* 展開時顯示ETA */}
               {isExpanded && (
-                <div className="mt-2 text-sm text-[#151414]">
+                <div className="mt-2 text-sm text-rose-600">
                   {isLoading ? (
                     <div>載入中...</div>
                   ) : etaError ? (
