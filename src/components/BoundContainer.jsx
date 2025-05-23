@@ -43,13 +43,13 @@ function BoundContainer({ routeArr, selectRouteObj }) {
       <div className="flex justify-center space-x-4">
         {/* 常規路線 */}
         <div className="w-1/2">
-          <h3 className="text-lg font-bold text-rose-600 mb-2">常規路線</h3>
+          <h3 className="text-lg font-bold text-[#2b2b2b] mb-2">常規路線</h3>
           {kmbRoutes
             .filter((route) => route.service_type === "1")
             .map((route, index) => (
               <div
                 key={index}
-                className="cursor-pointer border border-rose-500 p-3 rounded-md mb-3 hover:bg-rose-100"
+                className="cursor-pointer border border-[#2b2b2b] p-3 rounded-md mb-3 hover:bg-[#666666]"
                 onClick={() => handleRouteClick(route)}
               >
                 <p>
@@ -62,7 +62,7 @@ function BoundContainer({ routeArr, selectRouteObj }) {
             generateCtbBounds(ctbRoutes[0]).map((bound, index) => (
               <div
                 key={`ctb-${index}`}
-                className="cursor-pointer border border-rose-500 p-3 rounded-md mb-3 hover:bg-rose-100"
+                className="cursor-pointer border border-[#2b2b2b] p-3 rounded-md mb-3 hover:bg-[#666666]"
                 onClick={() => handleRouteClick(bound)}
               >
                 <p>
@@ -74,13 +74,13 @@ function BoundContainer({ routeArr, selectRouteObj }) {
         </div>
         {/* 特別班次 */}
         <div className="w-1/2">
-          <h3 className="text-lg font-bold text-rose-600 mb-2">特別班次</h3>
+          <h3 className="text-lg font-bold text-[#2b2b2b] mb-2">特別班次</h3>
           {kmbRoutes
             .filter((route) => route.service_type !== "1")
             .map((route, index) => (
               <div
                 key={index}
-                className="cursor-pointer border border-rose-500 p-3 rounded-md mb-3 hover:bg-rose-100"
+                className="cursor-pointer border border-[#2b2b2b] p-3 rounded-md mb-3 hover:bg-[#666666]"
                 onClick={() => handleRouteClick(route)}
               >
                 <p>

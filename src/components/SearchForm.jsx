@@ -84,7 +84,7 @@ function SearchForm({ showError, checkRouteExists, allRoutes, isLoading }) {
               height="24"
               viewBox="0 0 24 24"
               fill="none"
-              stroke="#e60012"
+              stroke="#111"
               strokeWidth="1"
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -101,7 +101,7 @@ function SearchForm({ showError, checkRouteExists, allRoutes, isLoading }) {
           </div>
           <input
             id="userInput"
-            className="block p-3 pl-10 w-full text-base text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-rose-500 focus:border-rose-500 rounded-r-none touch-action-manipulation"
+            className="block p-3 pl-10 w-full text-base text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-[#2b2b2b] focus:border-[#2b2b2b] rounded-r-none touch-action-manipulation"
             placeholder={isLoading ? "載入路線資料中..." : "輸入巴士路線"}
             type="text"
             value={userInput}
@@ -113,7 +113,7 @@ function SearchForm({ showError, checkRouteExists, allRoutes, isLoading }) {
         <div className="w-[150px]">
           <button
             id="submitBtn"
-            className="py-3 px-5 w-full text-sm font-medium text-center text-white rounded-lg border cursor-pointer bg-rose-700 border-rose-600 rounded-l-none hover:bg-rose-800 focus:ring-4 focus:ring-rose-300"
+            className="py-3 px-5 w-full text-sm font-medium text-center text-white rounded-lg border cursor-pointer bg-[#151414] border-[#2b2b2b] rounded-l-none hover:bg-[#2b2b2b] focus:ring-4 focus:ring-[#2b2b2b]"
             onClick={handleOnClick}
             disabled={isLoading}
           >
@@ -125,14 +125,14 @@ function SearchForm({ showError, checkRouteExists, allRoutes, isLoading }) {
       {showSuggestions && (
         <div
           ref={wrapperRef}
-          className="absolute z-20 w-full bg-white border border-rose-200 rounded-md shadow-md top-[100%] left-0 max-h-60 overflow-y-auto"
+          className="absolute z-20 w-full bg-white border border-[#666666] rounded-md shadow-md top-[100%] left-0 max-h-60 overflow-y-auto"
         >
           {suggestions.length > 0 ? (
             <ul>
               {suggestions.map((route) => (
                 <li
                   key={route}
-                  className="px-3 py-4 text-sm text-rose-600 hover:bg-rose-100 cursor-pointer"
+                  className="px-3 py-4 text-sm text-[#151414] hover:bg-[#666666] cursor-pointer"
                   onClick={() => handleSuggestionClick(route)}
                 >
                   {route}
@@ -140,7 +140,7 @@ function SearchForm({ showError, checkRouteExists, allRoutes, isLoading }) {
               ))}
             </ul>
           ) : (
-            <div className="px-4 py-2 text-sm text-rose-600">無匹配路線</div>
+            <div className="px-4 py-2 text-sm text-[#151414]">無匹配路線</div>
           )}
         </div>
       )}

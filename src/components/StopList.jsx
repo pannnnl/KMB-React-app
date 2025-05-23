@@ -175,7 +175,7 @@ function StopList({ stopListArr, allStops, selectedBound, selectedCompany }) {
 
           return (
             <div
-              className="py-2 px-4 cursor-pointer flex flex-col border border-rose-500 w-[300px] rounded-md mb-4 hover:bg-rose-100"
+              className="py-2 px-4 cursor-pointer flex flex-col border border-[#666666] w-[300px] rounded-md mb-4 hover:bg-[#666666]"
               key={stop}
               onClick={() => handleStopClick(stop, stopObj)}
             >
@@ -184,13 +184,13 @@ function StopList({ stopListArr, allStops, selectedBound, selectedCompany }) {
                 <span>
                   {seq} - {stopArrWithName[0]?.name_tc || "未知站點"}
                 </span>
-                <span className="text-rose-600 text-sm">
+                <span className="text-[#151414] text-sm">
                   {isExpanded ? "" : ""}
                 </span>
               </div>
               {/* 展開時顯示ETA */}
               {isExpanded && (
-                <div className="mt-2 text-sm text-rose-600">
+                <div className="mt-2 text-sm text-[#151414]">
                   {isLoading ? (
                     <div>載入中...</div>
                   ) : etaError ? (
